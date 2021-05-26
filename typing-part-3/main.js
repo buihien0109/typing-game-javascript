@@ -8,7 +8,7 @@ const languageEl = document.querySelector('#chose-language');
 // Thông tin người chơi
 const wordsCorrectEl = document.querySelector('.words-correct');
 const wordsWrongEl = document.querySelector('.words-wrong');
-const wpsCountEl = document.querySelector('.wps-count');
+const wpmCountEl = document.querySelector('.wps-count');
 const characterCorrectCountEl = document.querySelector(
     '.character-correct-count'
 );
@@ -29,6 +29,7 @@ let language = {
 };
 
 let time;
+let wpsTime;
 let words;
 let interval;
 let index;
@@ -61,7 +62,8 @@ function highlightWord(index) {
 }
 
 function init() {
-    time = 60;
+    time = 10;
+    wpsTime = time;
     index = 0;
     isPlaying = false;
 
@@ -151,17 +153,19 @@ function countdownTime() {
 
         updateInfoPlayer();
 
-        insertInfoPlayerToRanking()
+        insertInfoPlayerToRanking();
     }
 }
 
 function updateInfoPlayer() {
     let spans = document.querySelectorAll('#words span');
 
-    let totalCorrectWords = 0;
-    let totalWrongWords = 0;
-    let totalCorrectCharacters = 0;
-    let totalWrongCharacters = 0;
+    let totalCorrectWords = 0; // Tổng số từ gõ đúng
+    let totalWrongWords = 0; // Tổng số từ gõ sai
+    let totalCorrectCharacters = 0; // Tổng số ký tự gõ đúng
+    let totalWrongCharacters = 0; // Tổng số ký tự gõ sai
+    let totalCharacters = 0; // Tổng số ký tự đã gõ
+    let wps
 
     for (let i = 0; i < spans.length; i++) {
         // Đếm số từ và ký tự đúng
@@ -178,11 +182,17 @@ function updateInfoPlayer() {
     // Cập nhật số từ đúng - sai
     wordsCorrectEl.innerText = totalCorrectWords;
     wordsWrongEl.innerText = totalWrongWords;
-    wpsCountEl.innerText = `${totalCorrectWords + totalWrongWords} WPS`;
+
+    // Tính toán WPM
+    totalCharacters = totalCorrectCharacters + totalWrongCharacters;
+    wps = Math.round(totalCharacters / 5 / (wpsTime / 60));
+    wpmCountEl.innerText = `${wps} WPM`;
+
     // Cập nhật số ký tự đúng - sai
     characterCorrectCountEl.innerText = totalCorrectCharacters;
     characterWrongCountEl.innerText = totalWrongCharacters;
-    characterCountEl.innerText = totalCorrectCharacters + totalWrongCharacters;
+    characterCountEl.innerText = totalCharacters;
+
     // Cập nhật phần trăm từ gõ chính xác
     percentCorrectEl.innerText = `${(
         (totalCorrectWords * 100) /
@@ -204,21 +214,19 @@ function renderWords(arr) {
 // Mock up mảng rank
 let ranking = [
     {
-        avatar:
-            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8bmhhJTIwdHJhbmclMjBiZWFjaHxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
+        avatar: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8bmhhJTIwdHJhbmclMjBiZWFjaHxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
         username: 'Nguyen Van A',
         wpm: 10,
         time: formatDate(new Date(2021, 3, 27, 11, 33, 30)),
     },
     {
-        avatar:
-            'https://ec.europa.eu/jrc/sites/jrcsh/files/styles/normal-responsive/public/fotolia-92027264european-day-forest-green-forest.jpg?itok=biCWJPQQ',
+        avatar: 'https://ec.europa.eu/jrc/sites/jrcsh/files/styles/normal-responsive/public/fotolia-92027264european-day-forest-green-forest.jpg?itok=biCWJPQQ',
         username: 'Tran Van B',
         wpm: 500,
         time: formatDate(new Date(2021, 3, 26, 16, 33, 30)),
     },
     {
-        avatar: 'https://ychef.files.bbci.co.uk/624x351/p0973lkk.jpg',
+        avatar: 'https://images.unsplash.com/photo-1569389397653-c04fe624e663?ixid=MnwxMjA3fDF8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
         username: 'Phan Thi C',
         wpm: 151,
         time: formatDate(new Date(2021, 3, 27, 02, 33, 30)),
@@ -229,25 +237,29 @@ const tableEl = document.querySelector('tbody');
 
 // render ranking
 function renderRanking(arr) {
+    // Sắp xếp thứ tự người chơi theo wpm giảm dần
     let arrSort = arr.sort(function (a, b) {
-        return b.wps - a.wps;
+        return b.wpm - a.wpm;
     });
 
-    tableEl.innerHTML = '';
+    // Lấy ra danh sách TOP 10
+    let arrTop10 = arrSort.slice(0, 10)
 
-    for (let i = 0; i < arrSort.length; i++) {
+    // Render lên giao diện
+    tableEl.innerHTML = '';
+    for (let i = 0; i < arrTop10.length; i++) {
+        const u = arrTop10[i]
         tableEl.innerHTML += `
-		<tr>
-			<td>${i + 1}</td>
-			<td>
-				<img src=${arrSort[i].avatar}
-					alt="">
-			</td>
-			<td>${arrSort[i].username}</td>
-			<td class="font-weight-bold">${arrSort[i].wpm}</td>
-			<td class="font-italic">${arrSort[i].time}</td>
-		</tr>
-    `;
+            <tr>
+                <td>${i + 1}</td>
+                <td>
+                    <img src=${u.avatar} alt="${u.username}">
+                </td>
+                <td>${u.username}</td>
+                <td class="font-weight-bold">${u.wpm}</td>
+                <td class="font-italic">${u.time}</td>
+            </tr>
+        `;
     }
 }
 
@@ -260,12 +272,10 @@ function formatDate(date) {
     let minute = `0${date.getMinutes()}`.slice(-2);
     let second = `0${date.getSeconds()}`.slice(-2);
 
-    return `${hour}:${minute}:${second} - ${day}/${month}/${year}`
+    return `${hour}:${minute}:${second} - ${day}/${month}/${year}`;
 }
 
-function insertInfoPlayerToRanking() {
-    
-}
+function insertInfoPlayerToRanking() {}
 
 // Gọi function, truyền vào mảng mock up
 renderRanking(ranking);
