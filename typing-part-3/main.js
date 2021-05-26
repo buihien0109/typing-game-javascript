@@ -5,6 +5,17 @@ const timeEl = document.querySelector('#time');
 const btnReload = document.querySelector('.btn-reload');
 const languageEl = document.querySelector('#chose-language');
 
+// Thông tin người chơi
+const wordsCorrectEl = document.querySelector('.words-correct');
+const wordsWrongEl = document.querySelector('.words-wrong');
+const wpsCountEl = document.querySelector('.wps-count');
+const characterCorrectCountEl = document.querySelector(
+    '.character-correct-count'
+);
+const characterWrongCountEl = document.querySelector('.character-wrong-count');
+const characterCountEl = document.querySelector('.character-count');
+const percentCorrectEl = document.querySelector('.percent-correct');
+
 // Khai báo biến
 let string_vietnamese =
     'Tôi trả tiền làm tượng nhưng cũng không hài lòng Anh Tú Thứ năm Chủ khu du lịch An sapa Sa Pa Lào Cai nghĩ cộng đồng mạng nên có cái nhìn chính xác hơn về sự cố liên quan đến tượng Nữ thần Tự do vừa qua Chia sẻ với Zing ông Nguyễn Ngọc Đông chủ khu An sapa thừa nhận rất mệt mỏi trong những ngày qua khi trở thành nạn nhân của cộng đồng mạng';
@@ -137,7 +148,46 @@ function countdownTime() {
         clearInterval(interval);
         inputWordEl.disabled = true;
         inputWordEl.value = '';
+
+        updateInfoPlayer();
+
+        insertInfoPlayerToRanking()
     }
+}
+
+function updateInfoPlayer() {
+    let spans = document.querySelectorAll('#words span');
+
+    let totalCorrectWords = 0;
+    let totalWrongWords = 0;
+    let totalCorrectCharacters = 0;
+    let totalWrongCharacters = 0;
+
+    for (let i = 0; i < spans.length; i++) {
+        // Đếm số từ và ký tự đúng
+        if (spans[i].classList.contains('correct')) {
+            totalCorrectWords++;
+            totalCorrectCharacters += spans[i].innerText.length;
+        }
+        // Đếm số từ và ký tự sai
+        if (spans[i].classList.contains('wrong')) {
+            totalWrongWords++;
+            totalWrongCharacters += spans[i].innerText.length;
+        }
+    }
+    // Cập nhật số từ đúng - sai
+    wordsCorrectEl.innerText = totalCorrectWords;
+    wordsWrongEl.innerText = totalWrongWords;
+    wpsCountEl.innerText = `${totalCorrectWords + totalWrongWords} WPS`;
+    // Cập nhật số ký tự đúng - sai
+    characterCorrectCountEl.innerText = totalCorrectCharacters;
+    characterWrongCountEl.innerText = totalWrongCharacters;
+    characterCountEl.innerText = totalCorrectCharacters + totalWrongCharacters;
+    // Cập nhật phần trăm từ gõ chính xác
+    percentCorrectEl.innerText = `${(
+        (totalCorrectWords * 100) /
+        (totalCorrectWords + totalWrongWords)
+    ).toFixed(2)}%`;
 }
 
 function renderWords(arr) {
@@ -149,5 +199,75 @@ function renderWords(arr) {
         `;
     }
 }
+
+// Mockup rank
+// Mock up mảng rank
+let ranking = [
+    {
+        avatar:
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8bmhhJTIwdHJhbmclMjBiZWFjaHxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80',
+        username: 'Nguyen Van A',
+        wpm: 10,
+        time: formatDate(new Date(2021, 3, 27, 11, 33, 30)),
+    },
+    {
+        avatar:
+            'https://ec.europa.eu/jrc/sites/jrcsh/files/styles/normal-responsive/public/fotolia-92027264european-day-forest-green-forest.jpg?itok=biCWJPQQ',
+        username: 'Tran Van B',
+        wpm: 500,
+        time: formatDate(new Date(2021, 3, 26, 16, 33, 30)),
+    },
+    {
+        avatar: 'https://ychef.files.bbci.co.uk/624x351/p0973lkk.jpg',
+        username: 'Phan Thi C',
+        wpm: 151,
+        time: formatDate(new Date(2021, 3, 27, 02, 33, 30)),
+    },
+];
+
+const tableEl = document.querySelector('tbody');
+
+// render ranking
+function renderRanking(arr) {
+    let arrSort = arr.sort(function (a, b) {
+        return b.wps - a.wps;
+    });
+
+    tableEl.innerHTML = '';
+
+    for (let i = 0; i < arrSort.length; i++) {
+        tableEl.innerHTML += `
+		<tr>
+			<td>${i + 1}</td>
+			<td>
+				<img src=${arrSort[i].avatar}
+					alt="">
+			</td>
+			<td>${arrSort[i].username}</td>
+			<td class="font-weight-bold">${arrSort[i].wpm}</td>
+			<td class="font-italic">${arrSort[i].time}</td>
+		</tr>
+    `;
+    }
+}
+
+function formatDate(date) {
+    let year = date.getFullYear();
+    let month = `0${date.getMonth() + 1}`.slice(-2);
+    let day = `0${date.getDate()}`.slice(-2);
+
+    let hour = `0${date.getHours()}`.slice(-2);
+    let minute = `0${date.getMinutes()}`.slice(-2);
+    let second = `0${date.getSeconds()}`.slice(-2);
+
+    return `${hour}:${minute}:${second} - ${day}/${month}/${year}`
+}
+
+function insertInfoPlayerToRanking() {
+    
+}
+
+// Gọi function, truyền vào mảng mock up
+renderRanking(ranking);
 
 window.onload = init;
