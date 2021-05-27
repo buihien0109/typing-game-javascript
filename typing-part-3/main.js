@@ -29,11 +29,12 @@ let language = {
 };
 
 let time;
-let wpsTime;
+let wpmTime;
 let words;
 let interval;
 let index;
 let isPlaying;
+let wpm
 
 languageEl.addEventListener('change', function () {
     init();
@@ -63,7 +64,8 @@ function highlightWord(index) {
 
 function init() {
     time = 10;
-    wpsTime = time;
+    wpmTime = time;
+    wpm = 0;
     index = 0;
     isPlaying = false;
 
@@ -89,6 +91,9 @@ function init() {
 
     // Highlight từ đầu tiên
     highlightWord(index);
+
+    // Render bảng xếp hạng người chơi
+    renderRanking(ranking);
 }
 
 inputWordEl.addEventListener('keyup', function (e) {
@@ -152,8 +157,7 @@ function countdownTime() {
         inputWordEl.value = '';
 
         updateInfoPlayer();
-
-        insertInfoPlayerToRanking();
+        addPlayerToRanking();
     }
 }
 
@@ -165,7 +169,6 @@ function updateInfoPlayer() {
     let totalCorrectCharacters = 0; // Tổng số ký tự gõ đúng
     let totalWrongCharacters = 0; // Tổng số ký tự gõ sai
     let totalCharacters = 0; // Tổng số ký tự đã gõ
-    let wps
 
     for (let i = 0; i < spans.length; i++) {
         // Đếm số từ và ký tự đúng
@@ -185,8 +188,8 @@ function updateInfoPlayer() {
 
     // Tính toán WPM
     totalCharacters = totalCorrectCharacters + totalWrongCharacters;
-    wps = Math.round(totalCharacters / 5 / (wpsTime / 60));
-    wpmCountEl.innerText = `${wps} WPM`;
+    wpm = Math.round(totalCharacters / 5 / (wpmTime / 60));
+    wpmCountEl.innerText = `${wpm} WPM`;
 
     // Cập nhật số ký tự đúng - sai
     characterCorrectCountEl.innerText = totalCorrectCharacters;
@@ -275,9 +278,20 @@ function formatDate(date) {
     return `${hour}:${minute}:${second} - ${day}/${month}/${year}`;
 }
 
-function insertInfoPlayerToRanking() {}
+function addPlayerToRanking() {
+    // Tạo 1 bản ghi người chơi
+    let player = {
+        avatar: 'https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Nnx8bWFufGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        username: 'Bùi Hiên',
+        wpm: wpm,
+        time: formatDate(new Date()),
+    }
 
-// Gọi function, truyền vào mảng mock up
-renderRanking(ranking);
+    // Thêm bản ghi vào mảng ranking
+    ranking.push(player)
+
+    // Render lại bảng xếp hạng sau khi thêm bản ghi mới
+    renderRanking(ranking)
+}
 
 window.onload = init;
